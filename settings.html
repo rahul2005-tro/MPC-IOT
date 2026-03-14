@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor Protection System Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-slate-950 text-white min-h-screen flex antialiased relative overflow-hidden">
+    <!-- Particles Background -->
+    <div id="particles-js" class="absolute inset-0 z-0 pointer-events-none"></div>
+
+    <!-- Main App Container wrapper for z-index -->
+    <div class="relative z-10 flex w-full h-screen">
+
+        <!-- Sidebar -->
+        <aside id="sidebar"
+            class="w-64 bg-slate-950 md:bg-slate-900 bg-opacity-100 md:bg-opacity-50 backdrop-blur-md border-r border-slate-800 absolute md:relative inset-y-0 left-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col">
+            <button id="close-sidebar-btn" class="md:hidden absolute top-4 right-4 text-gray-400 hover:text-white z-50">
+                <i class="fa-solid fa-times text-xl"></i>
+            </button>
+            <div class="h-20 flex items-center justify-center border-b border-slate-800">
+                <h1
+                    class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">
+                    <i class="fa-solid fa-microchip mr-2 text-amber-500"></i>MPS Control
+                </h1>
+            </div>
+            <nav class="flex-1 px-4 py-8 space-y-2">
+                <a href="index.html"
+                    class="flex items-center space-x-3 px-4 py-3 hover:bg-slate-800 hover:bg-opacity-30 rounded-lg text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-chart-line w-5"></i>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="history.html"
+                    class="flex items-center space-x-3 px-4 py-3 hover:bg-slate-800 hover:bg-opacity-30 rounded-lg text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-history w-5"></i>
+                    <span class="font-medium">History Logs</span>
+                </a>
+                <a href="settings.html"
+                    class="flex items-center space-x-3 px-4 py-3 bg-slate-800 bg-opacity-50 rounded-lg text-amber-400 border border-amber-900/50 transition-colors shadow-lg shadow-amber-900/20">
+                    <i class="fa-solid fa-cog w-5"></i>
+                    <span class="font-medium">Settings</span>
+                </a>
+            </nav>
+            <div class="p-4 border-t border-slate-800">
+                <div class="flex items-center space-x-3 px-4 py-2">
+                    <div id="connection-indicator"
+                        class="w-3 h-3 rounded-full bg-red-400 shadow-[0_0_10px_rgba(248,113,113,0.7)] animate-pulse">
+                    </div>
+                    <span id="connection-text" class="text-sm text-gray-400">Disconnected</span>
+                </div>
+                <div class="px-4 mt-2 text-xs text-gray-500">
+                    Updated: <span id="last-update">--:--:--</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col items-stretch overflow-hidden">
+
+            <!-- Mobile Header -->
+            <header
+                class="md:hidden h-16 bg-slate-900 bg-opacity-50 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-4">
+                <h1
+                    class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-200">
+                    <i class="fa-solid fa-microchip mr-2 text-amber-500"></i>MPS Control
+                </h1>
+                <button id="mobile-menu-btn" class="text-gray-400 hover:text-white p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </header>
+
+            <!-- Top Status Bar (Desktop) -->
+            <header
+                class="hidden md:flex h-20 bg-slate-900 bg-opacity-20 backdrop-blur-sm items-center justify-between px-8 border-b border-slate-800/60 shadow-sm z-20 relative">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight">System Overview</h2>
+                    <p class="text-sm text-gray-400">Real-time monitoring & control</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button
+                        class="w-10 h-10 rounded-full bg-slate-800/80 flex items-center justify-center border border-slate-700 hover:bg-slate-700 transition-colors">
+                        <i class="fa-solid fa-bell text-amber-200"></i>
+                    </button>
+                    <div
+                        class="h-10 w-10 rounded-full bg-gradient-to-br from-amber-500 to-violet-600 flex items-center justify-center font-bold shadow-[0_0_15px_rgba(245,158,11,0.4)]">
+                        A
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative">
+
+                <!-- Toast Container -->
+                <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+                <!-- Settings Header -->
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-white tracking-wide">System Settings</h2>
+                    <p class="text-sm text-gray-400">Configure your motor thresholds and alert preferences.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Notifications Panel -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-300 mb-4 border-b border-slate-700 pb-2"><i
+                                class="fa-solid fa-bell mr-2 text-amber-400"></i>Alert Preferences</h3>
+
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-white text-sm">Critical Temperature Alerts</h4>
+                                    <p class="text-xs text-gray-500">Receive an SMS when Motor exceeds 65°C</p>
+                                </div>
+                                <label
+                                    class="relative inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 border border-slate-600 shadow-inner">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-white text-sm">Vibration Safety Trip</h4>
+                                    <p class="text-xs text-gray-500">Automatically cut power if vibration detected</p>
+                                </div>
+                                <label
+                                    class="relative inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 border border-slate-600 shadow-inner">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-white text-sm">Air Quality Degradation Warning</h4>
+                                    <p class="text-xs text-gray-500">Alerts when PPM > 300 for prolonged periods</p>
+                                </div>
+                                <label
+                                    class="relative inline-flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                                    <input type="checkbox" class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 border border-slate-600 shadow-inner">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Custom Alert Limits -->
+                            <div class="pt-4 mt-2 border-t border-slate-700/50 space-y-4">
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1" for="temp-limit-input">Critical
+                                        Temperature Limit (°C)</label>
+                                    <input type="number" id="temp-limit-input" value="65"
+                                        class="w-full bg-slate-900/50 border border-slate-700 text-amber-500 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5 outline-none shadow-inner">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1" for="aq-limit-input">Air Quality
+                                        Warning Limit (PPM)</label>
+                                    <input type="number" id="aq-limit-input" value="300"
+                                        class="w-full bg-slate-900/50 border border-slate-700 text-amber-500 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5 outline-none shadow-inner">
+                                </div>
+                                <div class="pt-2">
+                                    <button type="button" id="save-settings-btn"
+                                        class="w-full text-slate-900 bg-amber-500 hover:bg-amber-400 focus:ring-4 focus:ring-amber-500/50 font-bold tracking-wide rounded-lg text-sm px-5 py-2.5 text-center transition-colors shadow-lg shadow-amber-500/20">
+                                        Save Alert Limits
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Database Configuration Panel -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-300 mb-4 border-b border-slate-700 pb-2"><i
+                                class="fa-solid fa-server mr-2 text-violet-400"></i>Database Connection</h3>
+
+                        <form class="space-y-4">
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1" for="db-url">Realtime Database
+                                    URL</label>
+                                <input disabled type="text" id="db-url"
+                                    value="https://raja-iot-82804-default-rtdb.asia-southeast1.firebasedatabase.app/"
+                                    class="w-full bg-slate-900/50 border border-slate-700 text-gray-400 text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5 outline-none cursor-not-allowed shadow-inner">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 mb-1" for="sync-rate">Sync Interval
+                                    (ms)</label>
+                                <input type="number" id="sync-rate" value="1000"
+                                    class="w-full bg-slate-800/80 border border-slate-600 text-white text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block p-2.5 outline-none shadow-inner">
+                            </div>
+
+                            <div class="pt-2">
+                                <button type="button"
+                                    class="w-full text-slate-900 bg-amber-500 hover:bg-amber-400 focus:ring-4 focus:ring-amber-500/50 font-bold tracking-wide rounded-lg text-sm px-5 py-2.5 text-center transition-colors shadow-lg shadow-amber-500/20">Save
+                                    Firebase Configuration</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Temperature Chart -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-200">Temperature History</h3>
+                            <div class="flex items-center space-x-2">
+                                <span
+                                    class="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]"></span>
+                                <span class="text-xs font-semibold tracking-wider uppercase text-gray-400">Live
+                                    Data</span>
+                            </div>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="tempChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Air Quality Chart -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-200">Air Quality Trend</h3>
+                            <div class="flex items-center space-x-2">
+                                <span
+                                    class="w-3 h-3 rounded-full bg-violet-500 shadow-[0_0_8px_rgba(139,92,246,0.8)]"></span>
+                                <span class="text-xs font-semibold tracking-wider uppercase text-gray-400">Live
+                                    Data</span>
+                            </div>
+                        </div>
+                        <div class="relative h-64 w-full">
+                            <canvas id="aqChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div> <!-- End Main App Container wrapper -->
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script type="module" src="script.js?v=1.1"></script>
+
+    <!-- Particles & Vanilla Tilt Plugins -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <script>
+        // Initialize particles
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 50, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": ["#f59e0b", "#8b5cf6", "#fbbf24"] },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.3, "random": true, "anim": { "enable": true, "speed": 0.5, "opacity_min": 0.1, "sync": false } },
+                "size": { "value": 3, "random": true, "anim": { "enable": true, "speed": 1.5, "size_min": 0.1, "sync": false } },
+                "line_linked": { "enable": true, "distance": 160, "color": "#f59e0b", "opacity": 0.1, "width": 1 },
+                "move": { "enable": true, "speed": 1.5, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 0.6 } }, "push": { "particles_nb": 3 } }
+            },
+            "retina_detect": true
+        });
+
+        // Initialize Tilt on Data Cards conditionally
+        VanillaTilt.init(document.querySelectorAll(".glass-card"), {
+            max: 4,
+            speed: 400,
+            glare: true,
+            "max-glare": 0.2,
+            scale: 1.02,
+            transition: true
+        });
+    </script>
+</body>
+
+</html>
